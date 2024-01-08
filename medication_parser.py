@@ -8,6 +8,7 @@ def filter_values(input_string):
     result_list = [(float(match[0]), match[2]) for match in matches]
     return result_list
 
+
 raw_data = pd.read_csv(
     'Result_1.csv',
     names=['Protocol', 'Medication', 'Medication Strength', 'Amount']
@@ -38,7 +39,8 @@ for data in brackets_clean:
     else:
         maximus_free.append(data)
 digit_free = ["".join(filter(lambda x: not x.isdigit() and x != "%" and x != ".", s)) for s in maximus_free]
-for data in digit_free:
+print(maximus_free)
+for data in maximus_free:
     splitted_part = data.split()
     splitted_part = splitted_part[0]
     first_part.append(splitted_part)
@@ -52,10 +54,20 @@ for data in maximus_free:
 with open('result.csv', 'w') as f:
     f.writelines(res)
 medication_strength = list()
+formatted_data = list()
+f = ''
 result_list = [filter_values(item) for item in maximus_free]
-
+for l in result_list:
+    for t in l:
+        for item in t:
+            f += str(item)+' '
+    formatted_data.append(f)
+    f = ''
+print(formatted_data)
+check = pd.DataFrame()
+check['Formatted Data'] = formatted_data
+check.to_csv('formatted.csv', index=False)
 result_df['Medication'] = first_part
-result_df['Medication Strength'] = result_list
-result_df['Test Medication Strength'] = matches
+result_df['Medication Strength'] = formatted_data
 result_df['Elation Medication Name'] = raw_data['Medication']
 result_df.to_csv('res.csv',index=False)
