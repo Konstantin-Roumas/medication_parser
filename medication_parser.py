@@ -1,9 +1,16 @@
 import pandas as pd
 import re
 
+
+def filter_values(input_string):
+    pattern = re.compile(r'(\d+(\.\d+)?)\s?(mg|mcg|ml|%)\b')
+    matches = pattern.findall(input_string)
+    result_list = [(float(match[0]), match[2]) for match in matches]
+    return result_list
+
 raw_data = pd.read_csv(
-    '',
-    names=['Protocol', 'Medication']
+    'Result_1.csv',
+    names=['Protocol', 'Medication', 'Medication Strength', 'Amount']
 )
 result_df = pd.DataFrame()
 raw_medication = list()
@@ -24,13 +31,31 @@ for bb in brackets_clean:
 result_df['BuildingBlocks'] = building_blocks
 result_df['Protocol'] = protocols
 first_part = list()
+maximus_free = list()
 for data in brackets_clean:
+    if "Maximus" in data:
+        maximus_free.append(data.replace("Maximus", ''))
+    else:
+        maximus_free.append(data)
+digit_free = ["".join(filter(lambda x: not x.isdigit() and x != "%" and x != ".", s)) for s in maximus_free]
+for data in digit_free:
     splitted_part = data.split()
-    first_part.append(splitted_part[0])
+    splitted_part = splitted_part[0]
+    first_part.append(splitted_part)
 res = ''
-for data in brackets_clean:
-    res += data +'\n'
-
+for data in result_df:
+    res += data + '\n'
+pattern = re.compile(r'(\d+(\.\d+)?)\s?(mg|mcg|ml|%)\b')
+matches = list()
+for data in maximus_free:
+    matches.append(pattern.findall(data))
 with open('result.csv', 'w') as f:
     f.writelines(res)
+medication_strength = list()
+result_list = [filter_values(item) for item in maximus_free]
+
 result_df['Medication'] = first_part
+result_df['Medication Strength'] = result_list
+result_df['Test Medication Strength'] = matches
+result_df['Elation Medication Name'] = raw_data['Medication']
+result_df.to_csv('res.csv',index=False)
